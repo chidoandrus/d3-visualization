@@ -34,9 +34,21 @@ function updateChart(data) {
         .merge(circles)
         .transition()
         .duration(750)
-        .attr("cx", d => xScale(d.Date))
-        .attr("cy", d => yScale(d.mag))
-        .attr("r", d => radiusScale(d.mag));
+        .attr("cx", d => {
+            const x = xScale(d.Date);
+            console.log("Circle cx:", x); // Debugging
+            return x;
+        })
+        .attr("cy", d => {
+            const y = yScale(d.mag);
+            console.log("Circle cy:", y); // Debugging
+            return y;
+        })
+        .attr("r", d => {
+            const r = radiusScale(d.mag);
+            console.log("Circle r:", r); // Debugging
+            return r;
+        });
 
     circles.exit().remove();
 }
