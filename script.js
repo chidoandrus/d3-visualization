@@ -9,16 +9,14 @@ function updateChart(data) {
 
     console.log("Filtered Data:", filteredData); // Debugging
 
-    const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
-    const summary = d3.select("#summary");
-
-    if (!meanMagnitude) {
-        summary.text("No data available for the selected filters.");
-        console.log("No data available for the selected filters."); // Debugging
+    if (filteredData.length === 0) {
+        console.log("No data matches the filter criteria."); // Debugging
+        d3.select("#summary").text("No data available for the selected filters.");
         return;
     }
 
-    summary.text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
+    const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
+    d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
     const svg = d3.select("#chart").select("svg");
     const circles = svg.selectAll("circle").data(filteredData, d => d.ID);
@@ -76,6 +74,11 @@ function initializeChart() {
 
         currentData = data;
         console.log("Loaded Data:", data); // Debugging
+
+        if (data.length === 0) {
+            console.log("No data loaded from the CSV file."); // Debugging
+            return;
+        }
 
         const extentX = d3.extent(data, d => d.Date);
         const extentY = d3.extent(data, d => d.Magnitude);
