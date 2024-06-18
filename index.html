@@ -30,6 +30,9 @@
         .controls {
             margin-bottom: 20px;
         }
+        .annotation {
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -43,9 +46,4 @@
         <input type="range" id="depth-filter" min="0" max="700" step="10" value="700">
         <span id="depth-value">700</span>
     </div>
-    <div id="chart"></div>
-    <div id="tooltip" class="tooltip"></div>
-    <div id="summary"></div>
-    <script src="script.js"></script> <!-- Link to the JavaScript file -->
-</body>
-</html>
+    <div
