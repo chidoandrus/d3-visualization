@@ -142,4 +142,20 @@ document.getElementById('magnitude-filter').addEventListener('input', function()
 
 document.getElementById('depth-filter').addEventListener('input', function() {
     document.getElementById('depth-value').innerText = this.value;
-    updateChart(currentData
+    updateChart(currentData);
+});
+
+document.getElementById('search-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementById('longitude').value;
+    zoomToLocation(lat, lon);
+});
+
+document.getElementById('annotate-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementById('longitude').value;
+    const text = document.getElementById('annotation-text').value;
+    addAnnotation(lat, lon, text);
+});
+
+initializeChart();
