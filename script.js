@@ -1,6 +1,6 @@
 const width = 960;
 const height = 500;
-let projection, path, colorScale, radiusScale, currentData;
+let projection, path, colorScale, radiusScale, hexbin, currentData;
 
 function updateChart(data) {
     const minMagnitude = +document.getElementById('magnitude-filter').value;
@@ -25,34 +25,33 @@ function updateChart(data) {
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
     const svg = d3.select("#chart").select("svg");
+    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag]));
 
-    const circles = svg.selectAll("circle").data(filteredData, d => d.id);
+    const hexagons = svg.selectAll(".hexagon").data(hexData);
 
-    circles.enter()
-        .append("circle")
-        .attr("cx", d => projection([d.longitude, d.latitude])[0])
-        .attr("cy", d => projection([d.longitude, d.latitude])[1])
-        .attr("r", d => radiusScale(d.mag))
-        .attr("class", "bubble")
-        .style("fill", d => colorScale(d.mag))
-        .style("opacity", 0.3) // Increased transparency
-        .merge(circles)
+    hexagons.enter()
+        .append("path")
+        .attr("class", "hexagon")
+        .attr("d", hexbin.hexagon())
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .style("fill", d => colorScale(d3.mean(d, p => p[2])))
+        .style("opacity", 0.5)
+        .merge(hexagons)
         .transition()
         .duration(750)
-        .attr("cx", d => projection([d.longitude, d.latitude])[0])
-        .attr("cy", d => projection([d.longitude, d.latitude])[1])
-        .attr("r", d => radiusScale(d.mag))
-        .style("fill", d => colorScale(d.mag))
-        .style("opacity", 0.3); // Increased transparency
+        .attr("d", hexbin.hexagon())
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .style("fill", d => colorScale(d3.mean(d, p => p[2])))
+        .style("opacity", 0.5);
 
-    circles.exit().remove();
+    hexagons.exit().remove();
 
     // Tooltip functionality
-    svg.selectAll("circle")
+    svg.selectAll(".hexagon")
         .on("mouseover", function(event, d) {
             const tooltip = d3.select("#tooltip");
             tooltip.style("display", "block")
-                .html(`Magnitude: ${d.mag}<br>Date: ${d.Date.toDateString()}<br>Depth: ${d.depth}`)
+                .html(`Average Magnitude: ${d3.mean(d, p => p[2]).toFixed(2)}<br>Count: ${d.length}`)
                 .style("left", (event.pageX + 5) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
@@ -70,10 +69,11 @@ function initializeChart() {
         }))
         .append("g");
 
-    projection = d3.geoMercator().scale(100).translate([width / 2, height / 1.5]); // Adjusted scale
+    projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    radiusScale = d3.scaleSqrt().range([0.2, 3]); // Further reduced circle size
+    radiusScale = d3.scaleSqrt().range([0.5, 5]); // Further reduced circle size
+    hexbin = d3.hexbin().radius(10).extent([[0, 0], [width, height]]);
 
     svg.append("g").attr("class", "countries");
 
