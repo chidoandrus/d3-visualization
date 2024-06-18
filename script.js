@@ -113,6 +113,28 @@ function initializeChart() {
     });
 }
 
+function zoomToLocation(lat, lon) {
+    const [x, y] = projection([lon, lat]);
+    d3.select("svg").transition().duration(750).call(
+        d3.zoom().transform,
+        d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
+    );
+}
+
+function addAnnotation(lat, lon, text) {
+    const [x, y] = projection([lon, lat]);
+    d3.select("svg").append("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "middle")
+        .attr("class", "annotation")
+        .text(text)
+        .style("fill", "red")
+        .style("font-size", "12px")
+        .style("font-weight", "bold");
+}
+
 document.getElementById('magnitude-filter').addEventListener('input', function() {
     document.getElementById('magnitude-value').innerText = this.value;
     updateChart(currentData);
@@ -121,6 +143,19 @@ document.getElementById('magnitude-filter').addEventListener('input', function()
 document.getElementById('depth-filter').addEventListener('input', function() {
     document.getElementById('depth-value').innerText = this.value;
     updateChart(currentData);
+});
+
+document.getElementById('search-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementById('longitude').value;
+    zoomToLocation(lat, lon);
+});
+
+document.getElementById('annotate-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementById('longitude').value;
+    const text = document.getElementById('annotation-text').value;
+    addAnnotation(lat, lon, text);
 });
 
 initializeChart();
