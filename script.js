@@ -44,12 +44,18 @@ const tooltip = d3.select("#tooltip");
 
 // Load the earthquake data
 d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
+    // Log data for debugging
+    console.log(data);
+
     // Parse the data
     data.forEach(d => {
         d.Date = new Date(d.Date);
         d.Depth = +d.Depth;
         d.Magnitude = +d.Magnitude;
     });
+
+    // Log parsed data for debugging
+    console.log(data);
 
     // Set domains for the scales
     x.domain(d3.extent(data, d => d.Date));
@@ -108,6 +114,9 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
 
     // Function to update the chart based on filters
     function updateChart(filteredData) {
+        // Log filtered data for debugging
+        console.log(filteredData);
+
         // Remove existing bubbles
         svg.selectAll(".bubble").remove();
 
