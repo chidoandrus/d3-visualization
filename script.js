@@ -1,113 +1,176 @@
-console.log("Script loaded"); // Verify script loading
+// Set dimensions for the bubble chart
+const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+const width = 960 - margin.left - margin.right;
+const height = 500 - margin.top - margin.bottom;
 
-// Load and parse the data
-d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
-    console.log("Raw data:", data); // Log raw data
+// Create an SVG element to hold the bubble chart
+const svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Process the data
-    const parseYear = d3.timeParse("%Y");
+// Create scales
+const x = d3.scaleTime().range([0, width]);
+const y = d3.scaleLinear().range([height, 0]);
+const r = d3.scaleSqrt().range([2, 20]);
 
-    // Filter out rows that don't contain country data (e.g., metadata rows)
-    const filteredData = data.filter(d => d['Country Name'] && d['Country Code']);
+// Create axes
+const xAxis = d3.axisBottom(x);
+const yAxis = d3.axisLeft(y);
 
-    // Process the data to map each country to its yearly values
-    const countries = filteredData.map(d => {
-        return {
-            country: d['Country Name'],
-            values: Object.keys(d).filter(key => !isNaN(parseYear(key))).map(key => {
-                return { year: parseYear(key), value: +d[key] };
-            }).filter(d => !isNaN(d.value))
-        };
+// Create zoom and pan
+const zoom = d3.zoom()
+    .scaleExtent([1, 10])
+    .translateExtent([[0, 0], [width, height]])
+    .extent([[0, 0], [width, height]])
+    .on("zoom", zoomed);
+
+svg.call(zoom);
+
+function zoomed(event) {
+    const { transform } = event;
+    const newX = transform.rescaleX(x);
+    const newY = transform.rescaleY(y);
+    svg.selectAll(".bubble")
+        .attr("cx", d => newX(d.Date))
+        .attr("cy", d => newY(d.Depth));
+    svg.select(".x-axis").call(d3.axisBottom(newX));
+    svg.select(".y-axis").call(d3.axisLeft(newY));
+}
+
+// Create tooltip
+const tooltip = d3.select("#tooltip");
+
+// Load the earthquake data
+d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
+    // Parse the data
+    data.forEach(d => {
+        d.Date = new Date(d.Date);
+        d.Depth = +d.Depth;
+        d.Magnitude = +d.Magnitude;
     });
 
-    console.log("Processed countries:", countries); // Log processed data
+    // Set domains for the scales
+    x.domain(d3.extent(data, d => d.Date));
+    y.domain([0, d3.max(data, d => d.Depth)]);
+    r.domain([0, d3.max(data, d => d.Magnitude)]);
 
-    // Populate the country select options
-    const countrySelect = d3.select("#country-select");
-    countries.forEach(c => {
-        countrySelect.append("option")
-            .attr("value", c.country)
-            .text(c.country);
-    });
-
-    // Set up the SVG and dimensions
-    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
-    const width = 960 - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
-
-    const svg = d3.select("#chart").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Set up scales
-    const x = d3.scaleTime().range([0, width]);
-    const y = d3.scaleLinear().range([height, 0]);
-
-    x.domain([parseYear("1960"), parseYear("2023")]);
-    y.domain([0, d3.max(countries, c => d3.max(c.values, d => d.value))]);
-
-    // Set up axes
+    // Add axes
     svg.append("g")
+        .attr("class", "x-axis")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x));
+        .call(xAxis)
+      .append("text")
+        .attr("class", "axis-label")
+        .attr("x", width / 2)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .text("Date");
+
     svg.append("g")
-        .call(d3.axisLeft(y));
+        .attr("class", "y-axis")
+        .call(yAxis)
+      .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -40)
+        .style("text-anchor", "middle")
+        .text("Depth (km)");
 
-    // Define the line
-    const line = d3.line()
-        .x(d => x(d.year))
-        .y(d => y(d.value));
+    // Add legend
+    const legend = svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(${width - 150}, 30)`);
 
-    // Add tooltips
-    const tooltip = d3.select("#tooltip");
+    legend.append("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .text("Magnitude Legend:");
 
-    function update(selectedCountries) {
-        // Filter data based on selected countries
-        const filteredData = countries.filter(c => selectedCountries.includes(c.country));
+    const legendData = [6, 7, 8, 9, 10];
+    legend.selectAll("circle")
+        .data(legendData)
+        .enter().append("circle")
+        .attr("cx", 0)
+        .attr("cy", (d, i) => 20 + i * 20)
+        .attr("r", d => r(d))
+        .style("fill", "steelblue");
 
-        console.log("Filtered data:", filteredData); // Log filtered data
+    legend.selectAll("text.legend-text")
+        .data(legendData)
+        .enter().append("text")
+        .attr("class", "legend-text")
+        .attr("x", 20)
+        .attr("y", (d, i) => 25 + i * 20)
+        .text(d => d);
 
-        // Remove existing lines
-        svg.selectAll(".line").remove();
-        svg.selectAll(".dot").remove();
+    // Function to update the chart based on filters
+    function updateChart(filteredData) {
+        // Remove existing bubbles
+        svg.selectAll(".bubble").remove();
 
-        // Add the lines
-        svg.selectAll(".line")
-          .data(filteredData)
-          .enter().append("path")
-            .attr("class", "line")
-            .attr("d", d => line(d.values))
-            .style("stroke", d => d3.schemeCategory10[filteredData.indexOf(d) % 10]);
-
-        // Add the dots
-        svg.selectAll(".dot")
-          .data(filteredData.flatMap(c => c.values.map(v => ({ country: c.country, ...v }))))
-          .enter().append("circle")
-            .attr("class", "dot")
-            .attr("cx", d => x(d.year))
-            .attr("cy", d => y(d.value))
-            .attr("r", 5)
+        // Add bubbles
+        svg.selectAll(".bubble")
+            .data(filteredData)
+            .enter().append("circle")
+            .attr("class", "bubble")
+            .attr("cx", d => x(d.Date))
+            .attr("cy", d => y(d.Depth))
+            .attr("r", d => r(d.Magnitude))
             .on("mouseover", function(event, d) {
                 tooltip.style("display", "block")
-                       .html(`Country: ${d.country}<br>Year: ${d3.timeFormat("%Y")(d.year)}<br>Value: ${d.value}`);
+                    .html(`Magnitude: ${d.Magnitude}<br>Date: ${d.Date.toISOString().split('T')[0]}<br>Depth: ${d.Depth} km`);
             })
             .on("mousemove", function(event) {
                 tooltip.style("top", (event.pageY - 10) + "px")
-                       .style("left", (event.pageX + 10) + "px");
+                    .style("left", (event.pageX + 10) + "px");
             })
             .on("mouseout", function() {
                 tooltip.style("display", "none");
             });
+
+        // Data summary
+        const summary = d3.select("#summary");
+        summary.html(`
+            <p>Total Earthquakes: ${filteredData.length}</p>
+            <p>Average Magnitude: ${(d3.mean(filteredData, d => d.Magnitude)).toFixed(2)}</p>
+            <p>Average Depth: ${(d3.mean(filteredData, d => d.Depth)).toFixed(2)} km</p>
+        `);
     }
 
-    // Initial update with all countries
-    update(countries.map(c => c.country));
+    // Initial chart update
+    updateChart(data);
 
-    // Update chart based on selected countries
-    countrySelect.on("change", function() {
-        const selectedCountries = Array.from(this.selectedOptions).map(option => option.value);
-        update(selectedCountries);
+    // Add event listeners for search and filter
+    d3.select("#search").on("input", function() {
+        const searchDate = new Date(this.value);
+        const filteredData = data.filter(d => d.Date.toISOString().split('T')[0] === searchDate.toISOString().split('T')[0]);
+        updateChart(filteredData);
     });
+
+    d3.select("#magnitude-filter").on("input", function() {
+        const minMagnitude = +this.value;
+        d3.select("#magnitude-value").text(minMagnitude);
+        const filteredData = data.filter(d => d.Magnitude >= minMagnitude);
+        updateChart(filteredData);
+    });
+
+    d3.select("#depth-filter").on("input", function() {
+        const maxDepth = +this.value;
+        d3.select("#depth-value").text(maxDepth);
+        const filteredData = data.filter(d => d.Depth <= maxDepth);
+        updateChart(filteredData);
+    });
+
+    // Add annotations
+    const significantEarthquakes = data.filter(d => d.Magnitude >= 9);
+    svg.selectAll(".annotation")
+        .data(significantEarthquakes)
+        .enter().append("text")
+        .attr("class", "annotation")
+        .attr("x", d => x(d.Date))
+        .attr("y", d => y(d.Depth) - 10)
+        .text(d => `M${d.Magnitude}`);
 });
