@@ -93,4 +93,8 @@ d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
     update(countries.map(c => c.country));
 
     // Update chart based on selected countries
-    countrySelect.on(
+    countrySelect.on("change", function() {
+        const selectedCountries = Array.from(this.selectedOptions).map(option => option.value);
+        update(selectedCountries);
+    });
+});
