@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Earthquake Visualization</title>
+    <title>Interactive Earthquake Map Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
     <style>
         .bubble {
             stroke: black;
             stroke-width: 1px;
+            opacity: 0.7;
         }
         .tooltip {
             position: absolute;
@@ -19,28 +21,14 @@
             pointer-events: none;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
         }
-        .axis-label {
-            font-size: 14px;
-            font-weight: bold;
-        }
         .controls {
             margin-bottom: 20px;
-        }
-        .legend {
-            font-size: 12px;
-        }
-        .annotation {
-            fill: red;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Interactive Earthquake Visualization</h1>
+    <h1>Interactive Earthquake Map Visualization</h1>
     <div class="controls">
-        <label for="search">Search by Date (YYYY-MM-DD): </label>
-        <input type="text" id="search" placeholder="Enter date">
-        
         <label for="magnitude-filter">Magnitude Filter: </label>
         <input type="range" id="magnitude-filter" min="6" max="10" step="0.1" value="6">
         <span id="magnitude-value">6</span>
@@ -52,6 +40,6 @@
     <div id="chart"></div>
     <div id="tooltip" class="tooltip"></div>
     <div id="summary"></div>
-    <script src="script.js"></script>
+    <script src="script.js"></script> <!-- Link to the JavaScript file -->
 </body>
 </html>
