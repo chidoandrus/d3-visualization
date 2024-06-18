@@ -187,4 +187,6 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
         .attr("x", d => x(d.Date))
         .attr("y", d => y(d.Depth) - 10)
         .text(d => `${d.Magnitude} - ${d.Date.toISOString().split('T')[0]}`);
+}).catch(error => {
+    console.error("Error loading or processing data: ", error);
 });
