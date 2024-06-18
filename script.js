@@ -1,6 +1,6 @@
 const width = 960;
 const height = 500;
-let projection, path, colorScale, radiusScale, hexbin, currentData;
+let projection, path, colorScale, hexbin, currentData;
 
 function updateChart(data) {
     const minMagnitude = +document.getElementById('magnitude-filter').value;
@@ -35,14 +35,14 @@ function updateChart(data) {
         .attr("d", hexbin.hexagon())
         .attr("transform", d => `translate(${d.x},${d.y})`)
         .style("fill", d => colorScale(d3.mean(d, p => p[2])))
-        .style("opacity", 0.5)
+        .style("opacity", 0.6)
         .merge(hexagons)
         .transition()
         .duration(750)
         .attr("d", hexbin.hexagon())
         .attr("transform", d => `translate(${d.x},${d.y})`)
         .style("fill", d => colorScale(d3.mean(d, p => p[2])))
-        .style("opacity", 0.5);
+        .style("opacity", 0.6);
 
     hexagons.exit().remove();
 
@@ -72,8 +72,7 @@ function initializeChart() {
     projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    radiusScale = d3.scaleSqrt().range([0.5, 5]); // Further reduced circle size
-    hexbin = d3.hexbin().radius(10).extent([[0, 0], [width, height]]);
+    hexbin = d3.hexbin().radius(20).extent([[0, 0], [width, height]]); // Adjusted hexbin radius
 
     svg.append("g").attr("class", "countries");
 
