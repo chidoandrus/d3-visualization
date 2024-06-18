@@ -54,6 +54,9 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
         d.Magnitude = +d.Magnitude;
     });
 
+    // Filter out invalid data
+    data = data.filter(d => !isNaN(d.Date) && !isNaN(d.Depth) && !isNaN(d.Magnitude));
+
     // Log parsed data for debugging
     console.log(data);
 
@@ -142,10 +145,12 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
 
         // Data summary
         const summary = d3.select("#summary");
+        const avgMagnitude = d3.mean(filteredData, d => d.Magnitude) || 0;
+        const avgDepth = d3.mean(filteredData, d => d.Depth) || 0;
         summary.html(`
             <p>Total Earthquakes: ${filteredData.length}</p>
-            <p>Average Magnitude: ${(d3.mean(filteredData, d => d.Magnitude)).toFixed(2)}</p>
-            <p>Average Depth: ${(d3.mean(filteredData, d => d.Depth)).toFixed(2)} km</p>
+            <p>Average Magnitude: ${avgMagnitude.toFixed(2)}</p>
+            <p>Average Depth: ${avgDepth.toFixed(2)} km</p>
         `);
     }
 
@@ -181,5 +186,5 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
         .attr("class", "annotation")
         .attr("x", d => x(d.Date))
         .attr("y", d => y(d.Depth) - 10)
-        .text(d => `M${d.Magnitude}`);
+        .text(d => `${d.Magnitude} - ${d.Date.toISOString().split('T')[0]}`);
 });
