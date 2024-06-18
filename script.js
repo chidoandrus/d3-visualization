@@ -1,3 +1,5 @@
+let xScale, yScale, radiusScale, currentData;
+
 // Function to update the chart
 function updateChart(data) {
     try {
@@ -9,6 +11,7 @@ function updateChart(data) {
 
         const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
         const summary = d3.select("#summary");
+
         if (!meanMagnitude) {
             summary.text("No data available for the selected filters.");
             return;
@@ -16,7 +19,7 @@ function updateChart(data) {
 
         summary.text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
-        const chart = d3.select("#chart");
+        const chart = d3.select("#chart").select("svg");
         const circles = chart.selectAll("circle").data(filteredData);
 
         circles.enter()
@@ -37,18 +40,6 @@ function updateChart(data) {
 }
 
 // Initializing the chart
-d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
-    data.forEach(d => {
-        d.Date = new Date(d.Date);
-        d.Magnitude = +d.Magnitude;
-        d.Depth = +d.Depth;
-    });
-    updateChart(data);
-}).catch(error => {
-    console.error("Error loading data:", error);
-});
-
-// Function to initialize the chart
 function initializeChart() {
     const svg = d3.select("#chart").append("svg")
         .attr("width", 960)
@@ -66,6 +57,21 @@ function initializeChart() {
         .attr("class", "y-axis");
 }
 
+// Load data and initialize the chart
+d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
+    data.forEach(d => {
+        d.Date = new Date(d.Date);
+        d.Magnitude = +d.Magnitude;
+        d.Depth = +d.Depth;
+    });
+
+    currentData = data;
+    initializeChart();
+    updateChart(data);
+}).catch(error => {
+    console.error("Error loading data:", error);
+});
+
 // Set up event listeners for filters
 document.getElementById('magnitude-filter').addEventListener('input', function() {
     document.getElementById('magnitude-value').innerText = this.value;
@@ -76,6 +82,3 @@ document.getElementById('depth-filter').addEventListener('input', function() {
     document.getElementById('depth-value').innerText = this.value;
     updateChart(currentData);
 });
-
-// Initialize the chart
-initializeChart();
