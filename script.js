@@ -153,4 +153,15 @@ document.getElementById('depth-filter').addEventListener('input', function() {
 
 document.getElementById('search-btn').addEventListener('click', function() {
     const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementBy
+    const lon = +document.getElementById('longitude').value;
+    zoomToLocation(lat, lon);
+});
+
+document.getElementById('annotate-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementById('longitude').value;
+    const text = document.getElementById('annotation-text').value;
+    addAnnotation(lat, lon, text);
+});
+
+initializeChart();
