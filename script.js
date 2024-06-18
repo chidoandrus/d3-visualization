@@ -1,4 +1,6 @@
-let xScale, yScale, radiusScale, currentData;
+const width = 960;
+const height = 500;
+let projection, path, colorScale, radiusScale, currentData;
 
 function updateChart(data) {
     const minMagnitude = +document.getElementById('magnitude-filter').value;
@@ -23,88 +25,86 @@ function updateChart(data) {
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
     const svg = d3.select("#chart").select("svg");
+
     const circles = svg.selectAll("circle").data(filteredData, d => d.id);
 
     circles.enter()
         .append("circle")
-        .attr("cx", d => xScale(d.Date))
-        .attr("cy", d => yScale(d.mag))
+        .attr("cx", d => projection([d.longitude, d.latitude])[0])
+        .attr("cy", d => projection([d.longitude, d.latitude])[1])
         .attr("r", d => radiusScale(d.mag))
         .attr("class", "bubble")
+        .style("fill", d => colorScale(d.mag))
         .merge(circles)
         .transition()
         .duration(750)
-        .attr("cx", d => {
-            const x = xScale(d.Date);
-            console.log("Circle cx:", x); // Debugging
-            return x;
-        })
-        .attr("cy", d => {
-            const y = yScale(d.mag);
-            console.log("Circle cy:", y); // Debugging
-            return y;
-        })
-        .attr("r", d => {
-            const r = radiusScale(d.mag);
-            console.log("Circle r:", r); // Debugging
-            return r;
-        });
+        .attr("cx", d => projection([d.longitude, d.latitude])[0])
+        .attr("cy", d => projection([d.longitude, d.latitude])[1])
+        .attr("r", d => radiusScale(d.mag))
+        .style("fill", d => colorScale(d.mag));
 
     circles.exit().remove();
+
+    // Tooltip functionality
+    svg.selectAll("circle")
+        .on("mouseover", function(event, d) {
+            const tooltip = d3.select("#tooltip");
+            tooltip.style("display", "block")
+                .html(`Magnitude: ${d.mag}<br>Date: ${d.Date.toDateString()}<br>Depth: ${d.depth}`)
+                .style("left", (event.pageX + 5) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            d3.select("#tooltip").style("display", "none");
+        });
 }
 
 function initializeChart() {
     const svg = d3.select("#chart").append("svg")
-        .attr("width", 960)
-        .attr("height", 500);
+        .attr("width", width)
+        .attr("height", height);
 
-    xScale = d3.scaleTime().range([0, 960]);
-    yScale = d3.scaleLinear().range([500, 0]);
-    radiusScale = d3.scaleSqrt().range([0, 20]);
+    projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
+    path = d3.geoPath().projection(projection);
+    colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
+    radiusScale = d3.scaleSqrt().range([2, 20]);
 
-    svg.append("g")
-        .attr("transform", "translate(0, 500)")
-        .attr("class", "x-axis");
+    svg.append("g").attr("class", "countries");
 
-    svg.append("g")
-        .attr("class", "y-axis");
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(worldData => {
+        svg.selectAll(".country")
+            .data(worldData.features)
+            .enter().append("path")
+            .attr("class", "country")
+            .attr("d", path)
+            .style("fill", "#ccc")
+            .style("stroke", "#333");
 
-    d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
-        data.forEach(d => {
-            d.Date = new Date(d.Date);
-            d.mag = +d.mag;
-            d.depth = +d.depth;
-            d.id = d.id || `${d.Date.getTime()}-${d.latitude}-${d.longitude}`;
+        d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
+            data.forEach(d => {
+                d.Date = new Date(d.Date);
+                d.mag = +d.mag;
+                d.depth = +d.depth;
+                d.latitude = +d.latitude;
+                d.longitude = +d.longitude;
+                d.id = `${d.Date.getTime()}-${d.latitude}-${d.longitude}`;
+            });
+
+            currentData = data;
+            console.log("Loaded Data Length:", data.length); // Debugging
+            console.log("Loaded Data Sample:", data.slice(0, 5)); // Debugging
+
+            if (data.length === 0) {
+                console.log("No data loaded from the CSV file."); // Debugging
+                return;
+            }
+
+            updateChart(data);
+        }).catch(error => {
+            console.error("Error loading data:", error);
         });
-
-        currentData = data;
-        console.log("Loaded Data Length:", data.length); // Debugging
-        console.log("Loaded Data Sample:", data.slice(0, 5)); // Debugging
-
-        if (data.length === 0) {
-            console.log("No data loaded from the CSV file."); // Debugging
-            return;
-        }
-
-        const extentX = d3.extent(data, d => d.Date);
-        const extentY = d3.extent(data, d => d.mag);
-
-        console.log("Extent X:", extentX); // Debugging
-        console.log("Extent Y:", extentY); // Debugging
-
-        xScale.domain(extentX);
-        yScale.domain(extentY);
-        radiusScale.domain(extentY);
-
-        svg.select(".x-axis")
-            .call(d3.axisBottom(xScale));
-
-        svg.select(".y-axis")
-            .call(d3.axisLeft(yScale));
-
-        updateChart(data);
     }).catch(error => {
-        console.error("Error loading data:", error);
+        console.error("Error loading world map data:", error);
     });
 }
 
