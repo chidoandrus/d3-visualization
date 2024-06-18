@@ -6,11 +6,17 @@
     <title>Interactive Earthquake Map Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script> <!-- Add d3-hexbin -->
     <style>
         .bubble {
             stroke: black;
             stroke-width: 1px;
             opacity: 0.7;
+        }
+        .hexagon {
+            fill: none;
+            stroke: black;
+            stroke-width: 0.5px;
         }
         .tooltip {
             position: absolute;
