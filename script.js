@@ -1,192 +1,81 @@
-// Set dimensions for the bubble chart
-const margin = { top: 20, right: 20, bottom: 50, left: 50 };
-const width = 960 - margin.left - margin.right;
-const height = 500 - margin.top - margin.bottom;
+// Function to update the chart
+function updateChart(data) {
+    try {
+        const minMagnitude = +document.getElementById('magnitude-filter').value;
+        const maxMagnitude = 10;
+        const maxDepth = +document.getElementById('depth-filter').value;
 
-// Create an SVG element to hold the bubble chart
-const svg = d3.select("#chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+        const filteredData = data.filter(d => d.Magnitude >= minMagnitude && d.Magnitude <= maxMagnitude && d.Depth <= maxDepth);
 
-// Create scales
-const x = d3.scaleTime().range([0, width]);
-const y = d3.scaleLinear().range([height, 0]);
-const r = d3.scaleSqrt().range([2, 20]);
+        const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
+        const summary = d3.select("#summary");
+        if (!meanMagnitude) {
+            summary.text("No data available for the selected filters.");
+            return;
+        }
 
-// Create axes
-const xAxis = d3.axisBottom(x);
-const yAxis = d3.axisLeft(y);
+        summary.text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
-// Create zoom and pan
-const zoom = d3.zoom()
-    .scaleExtent([1, 10])
-    .translateExtent([[0, 0], [width, height]])
-    .extent([[0, 0], [width, height]])
-    .on("zoom", zoomed);
+        const chart = d3.select("#chart");
+        const circles = chart.selectAll("circle").data(filteredData);
 
-svg.call(zoom);
+        circles.enter()
+            .append("circle")
+            .merge(circles)
+            .attr("cx", d => xScale(d.Date))
+            .attr("cy", d => yScale(d.Magnitude))
+            .attr("r", d => {
+                const radius = radiusScale(d.Magnitude);
+                return isNaN(radius) ? 0 : radius;
+            })
+            .attr("class", "bubble");
 
-function zoomed(event) {
-    const { transform } = event;
-    const newX = transform.rescaleX(x);
-    const newY = transform.rescaleY(y);
-    svg.selectAll(".bubble")
-        .attr("cx", d => newX(d.Date))
-        .attr("cy", d => newY(d.Depth));
-    svg.select(".x-axis").call(d3.axisBottom(newX));
-    svg.select(".y-axis").call(d3.axisLeft(newY));
+        circles.exit().remove();
+    } catch (error) {
+        console.error("Error updating chart:", error);
+    }
 }
 
-// Create tooltip
-const tooltip = d3.select("#tooltip");
-
-// Load the earthquake data
-d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(function(data) {
-    // Log data for debugging
-    console.log(data);
-
-    // Parse the data
+// Initializing the chart
+d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
     data.forEach(d => {
         d.Date = new Date(d.Date);
-        d.Depth = +d.Depth;
         d.Magnitude = +d.Magnitude;
+        d.Depth = +d.Depth;
     });
-
-    // Filter out invalid data
-    data = data.filter(d => !isNaN(d.Date) && !isNaN(d.Depth) && !isNaN(d.Magnitude));
-
-    // Log parsed data for debugging
-    console.log(data);
-
-    // Set domains for the scales
-    x.domain(d3.extent(data, d => d.Date));
-    y.domain([0, d3.max(data, d => d.Depth)]);
-    r.domain([0, d3.max(data, d => d.Magnitude)]);
-
-    // Add axes
-    svg.append("g")
-        .attr("class", "x-axis")
-        .attr("transform", `translate(0,${height})`)
-        .call(xAxis)
-      .append("text")
-        .attr("class", "axis-label")
-        .attr("x", width / 2)
-        .attr("y", 40)
-        .style("text-anchor", "middle")
-        .text("Date");
-
-    svg.append("g")
-        .attr("class", "y-axis")
-        .call(yAxis)
-      .append("text")
-        .attr("class", "axis-label")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", -40)
-        .style("text-anchor", "middle")
-        .text("Depth (km)");
-
-    // Add legend
-    const legend = svg.append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${width - 150}, 30)`);
-
-    legend.append("text")
-        .attr("x", 0)
-        .attr("y", 0)
-        .text("Magnitude Legend:");
-
-    const legendData = [6, 7, 8, 9, 10];
-    legend.selectAll("circle")
-        .data(legendData)
-        .enter().append("circle")
-        .attr("cx", 0)
-        .attr("cy", (d, i) => 20 + i * 20)
-        .attr("r", d => r(d))
-        .style("fill", "steelblue");
-
-    legend.selectAll("text.legend-text")
-        .data(legendData)
-        .enter().append("text")
-        .attr("class", "legend-text")
-        .attr("x", 20)
-        .attr("y", (d, i) => 25 + i * 20)
-        .text(d => d);
-
-    // Function to update the chart based on filters
-    function updateChart(filteredData) {
-        // Log filtered data for debugging
-        console.log(filteredData);
-
-        // Remove existing bubbles
-        svg.selectAll(".bubble").remove();
-
-        // Add bubbles
-        svg.selectAll(".bubble")
-            .data(filteredData)
-            .enter().append("circle")
-            .attr("class", "bubble")
-            .attr("cx", d => x(d.Date))
-            .attr("cy", d => y(d.Depth))
-            .attr("r", d => r(d.Magnitude))
-            .on("mouseover", function(event, d) {
-                tooltip.style("display", "block")
-                    .html(`Magnitude: ${d.Magnitude}<br>Date: ${d.Date.toISOString().split('T')[0]}<br>Depth: ${d.Depth} km`);
-            })
-            .on("mousemove", function(event) {
-                tooltip.style("top", (event.pageY - 10) + "px")
-                    .style("left", (event.pageX + 10) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.style("display", "none");
-            });
-
-        // Data summary
-        const summary = d3.select("#summary");
-        const avgMagnitude = d3.mean(filteredData, d => d.Magnitude) || 0;
-        const avgDepth = d3.mean(filteredData, d => d.Depth) || 0;
-        summary.html(`
-            <p>Total Earthquakes: ${filteredData.length}</p>
-            <p>Average Magnitude: ${avgMagnitude.toFixed(2)}</p>
-            <p>Average Depth: ${avgDepth.toFixed(2)} km</p>
-        `);
-    }
-
-    // Initial chart update
     updateChart(data);
-
-    // Add event listeners for search and filter
-    d3.select("#search").on("input", function() {
-        const searchDate = new Date(this.value);
-        const filteredData = data.filter(d => d.Date.toISOString().split('T')[0] === searchDate.toISOString().split('T')[0]);
-        updateChart(filteredData);
-    });
-
-    d3.select("#magnitude-filter").on("input", function() {
-        const minMagnitude = +this.value;
-        d3.select("#magnitude-value").text(minMagnitude);
-        const filteredData = data.filter(d => d.Magnitude >= minMagnitude);
-        updateChart(filteredData);
-    });
-
-    d3.select("#depth-filter").on("input", function() {
-        const maxDepth = +this.value;
-        d3.select("#depth-value").text(maxDepth);
-        const filteredData = data.filter(d => d.Depth <= maxDepth);
-        updateChart(filteredData);
-    });
-
-    // Add annotations
-    const significantEarthquakes = data.filter(d => d.Magnitude >= 9);
-    svg.selectAll(".annotation")
-        .data(significantEarthquakes)
-        .enter().append("text")
-        .attr("class", "annotation")
-        .attr("x", d => x(d.Date))
-        .attr("y", d => y(d.Depth) - 10)
-        .text(d => `${d.Magnitude} - ${d.Date.toISOString().split('T')[0]}`);
 }).catch(error => {
-    console.error("Error loading or processing data: ", error);
+    console.error("Error loading data:", error);
 });
+
+// Function to initialize the chart
+function initializeChart() {
+    const svg = d3.select("#chart").append("svg")
+        .attr("width", 960)
+        .attr("height", 500);
+
+    xScale = d3.scaleTime().range([0, 960]);
+    yScale = d3.scaleLinear().range([500, 0]);
+    radiusScale = d3.scaleSqrt().range([0, 20]);
+
+    svg.append("g")
+        .attr("transform", "translate(0, 500)")
+        .attr("class", "x-axis");
+
+    svg.append("g")
+        .attr("class", "y-axis");
+}
+
+// Set up event listeners for filters
+document.getElementById('magnitude-filter').addEventListener('input', function() {
+    document.getElementById('magnitude-value').innerText = this.value;
+    updateChart(currentData);
+});
+
+document.getElementById('depth-filter').addEventListener('input', function() {
+    document.getElementById('depth-value').innerText = this.value;
+    updateChart(currentData);
+});
+
+// Initialize the chart
+initializeChart();
