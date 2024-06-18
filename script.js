@@ -117,6 +117,7 @@ function zoomToLocation(lat, lon) {
     console.log(`Zoom to location: Latitude: ${lat}, Longitude: ${lon}`); // Debugging
     const [x, y] = projection([lon, lat]);
     console.log(`Projected coordinates: x: ${x}, y: ${y}`); // Debugging
+
     d3.select("svg").transition().duration(750).call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
