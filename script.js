@@ -14,6 +14,7 @@ function updateChart(data) {
 
     if (!meanMagnitude) {
         summary.text("No data available for the selected filters.");
+        console.log("No data available for the selected filters."); // Debugging
         return;
     }
 
@@ -22,11 +23,25 @@ function updateChart(data) {
     const svg = d3.select("#chart").select("svg");
     const circles = svg.selectAll("circle").data(filteredData, d => d.ID);
 
+    console.log("Creating circles..."); // Debugging
+
     circles.enter()
         .append("circle")
-        .attr("cx", d => xScale(d.Date))
-        .attr("cy", d => yScale(d.Magnitude))
-        .attr("r", d => radiusScale(d.Magnitude))
+        .attr("cx", d => {
+            const x = xScale(d.Date);
+            console.log("Circle x position:", x, "Date:", d.Date); // Debugging
+            return x;
+        })
+        .attr("cy", d => {
+            const y = yScale(d.Magnitude);
+            console.log("Circle y position:", y, "Magnitude:", d.Magnitude); // Debugging
+            return y;
+        })
+        .attr("r", d => {
+            const radius = radiusScale(d.Magnitude);
+            console.log("Circle radius:", radius, "Magnitude:", d.Magnitude); // Debugging
+            return radius;
+        })
         .attr("class", "bubble");
 
     circles.attr("cx", d => xScale(d.Date))
@@ -64,6 +79,9 @@ function initializeChart() {
 
         const extentX = d3.extent(data, d => d.Date);
         const extentY = d3.extent(data, d => d.Magnitude);
+
+        console.log("Extent X:", extentX); // Debugging
+        console.log("Extent Y:", extentY); // Debugging
 
         xScale.domain(extentX);
         yScale.domain(extentY);
