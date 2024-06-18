@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks Traded Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .line {
+            fill: none;
+            stroke-width: 2px;
+        }
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            display: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stocks Traded as % of GDP</h1>
+    <label for="country-select">Select Country:</label>
+    <select id="country-select" multiple></select>
+    <div id="chart"></div>
+    <div id="tooltip" class="tooltip"></div>
+    <script src="script.js"></script>
+</body>
+</html>
