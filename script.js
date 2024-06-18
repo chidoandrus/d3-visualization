@@ -35,13 +35,15 @@ function updateChart(data) {
         .attr("r", d => radiusScale(d.mag))
         .attr("class", "bubble")
         .style("fill", d => colorScale(d.mag))
+        .style("opacity", 0.6) // Increased transparency
         .merge(circles)
         .transition()
         .duration(750)
         .attr("cx", d => projection([d.longitude, d.latitude])[0])
         .attr("cy", d => projection([d.longitude, d.latitude])[1])
         .attr("r", d => radiusScale(d.mag))
-        .style("fill", d => colorScale(d.mag));
+        .style("fill", d => colorScale(d.mag))
+        .style("opacity", 0.6); // Increased transparency
 
     circles.exit().remove();
 
@@ -62,12 +64,16 @@ function updateChart(data) {
 function initializeChart() {
     const svg = d3.select("#chart").append("svg")
         .attr("width", width)
-        .attr("height", height);
+        .attr("height", height)
+        .call(d3.zoom().on("zoom", function (event) { // Enable zooming and panning
+            svg.attr("transform", event.transform)
+        }))
+        .append("g");
 
     projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    radiusScale = d3.scaleSqrt().range([2, 20]);
+    radiusScale = d3.scaleSqrt().range([1, 10]); // Reduced circle size
 
     svg.append("g").attr("class", "countries");
 
