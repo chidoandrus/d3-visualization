@@ -1,5 +1,7 @@
 // Load and parse the data
 d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
+    console.log("Raw data:", data); // Add this line to log the raw data
+
     // Process the data
     const parseYear = d3.timeParse("%Y");
     const countries = data.filter(d => d['Country Name'] && d['Country Code']).map(d => {
@@ -10,6 +12,8 @@ d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
             }).filter(d => !isNaN(d.value))
         };
     });
+
+    console.log("Processed countries:", countries); // Add this line to log the processed data
 
     // Populate the country select options
     const countrySelect = d3.select("#country-select");
@@ -55,6 +59,8 @@ d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
     function update(selectedCountries) {
         // Filter data based on selected countries
         const filteredData = countries.filter(c => selectedCountries.includes(c.country));
+
+        console.log("Filtered data:", filteredData); // Add this line to log the filtered data
 
         // Remove existing lines
         svg.selectAll(".line").remove();
