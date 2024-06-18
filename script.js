@@ -88,6 +88,13 @@ function initializeChart() {
         svg.select(".y-axis")
             .call(d3.axisLeft(yScale));
 
+        // Plot a single circle for debugging
+        svg.append("circle")
+            .attr("cx", xScale(data[0].Date))
+            .attr("cy", yScale(data[0].mag))
+            .attr("r", radiusScale(data[0].mag))
+            .attr("class", "bubble");
+
         updateChart(data);
     }).catch(error => {
         console.error("Error loading data:", error);
