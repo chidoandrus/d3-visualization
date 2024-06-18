@@ -9,6 +9,9 @@ function updateChart(data) {
 
         const filteredData = data.filter(d => d.Magnitude >= minMagnitude && d.Magnitude <= maxMagnitude && d.Depth <= maxDepth);
 
+        // Debugging: Log the filtered data
+        console.log("Filtered Data:", filteredData);
+
         const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
         const summary = d3.select("#summary");
 
@@ -34,6 +37,11 @@ function updateChart(data) {
             .attr("class", "bubble");
 
         circles.exit().remove();
+
+        // Debugging: Log the circle attributes
+        circles.each(function(d) {
+            console.log("Circle:", this, d);
+        });
     } catch (error) {
         console.error("Error updating chart:", error);
     }
@@ -55,6 +63,11 @@ function initializeChart() {
 
     svg.append("g")
         .attr("class", "y-axis");
+
+    // Debugging: Log the scales
+    console.log("xScale:", xScale);
+    console.log("yScale:", yScale);
+    console.log("radiusScale:", radiusScale);
 }
 
 // Load data and initialize the chart
@@ -64,6 +77,9 @@ d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
         d.Magnitude = +d.Magnitude;
         d.Depth = +d.Depth;
     });
+
+    // Debugging: Log the loaded data
+    console.log("Loaded Data:", data);
 
     currentData = data;
     initializeChart();
