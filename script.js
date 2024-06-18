@@ -1,7 +1,7 @@
 // Load and parse the data
 d3.csv('API_CM.MKT.TRAD.GD.ZS_DS2_en_csv_v2_146230.csv').then(function(data) {
     console.log("Raw data:", data); // Add this line to log the raw data
-
+    
     // Process the data
     const parseYear = d3.timeParse("%Y");
     const countries = data.filter(d => d['Country Name'] && d['Country Code']).map(d => {
