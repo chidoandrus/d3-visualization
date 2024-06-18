@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stocks Traded Visualization</title>
+    <title>Interactive Earthquake Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        .line {
-            fill: none;
-            stroke-width: 2px;
+        .bubble {
+            stroke: black;
+            stroke-width: 1px;
         }
         .tooltip {
             position: absolute;
@@ -17,15 +17,41 @@
             padding: 10px;
             display: none;
             pointer-events: none;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .legend {
+            font-size: 12px;
+        }
+        .annotation {
+            fill: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Stocks Traded as % of GDP</h1>
-    <label for="country-select">Select Country:</label>
-    <select id="country-select" multiple></select>
+    <h1>Interactive Earthquake Visualization</h1>
+    <div class="controls">
+        <label for="search">Search by Date (YYYY-MM-DD): </label>
+        <input type="text" id="search" placeholder="Enter date">
+        
+        <label for="magnitude-filter">Magnitude Filter: </label>
+        <input type="range" id="magnitude-filter" min="6" max="10" step="0.1" value="6">
+        <span id="magnitude-value">6</span>
+
+        <label for="depth-filter">Depth Filter: </label>
+        <input type="range" id="depth-filter" min="0" max="700" step="10" value="700">
+        <span id="depth-value">700</span>
+    </div>
     <div id="chart"></div>
     <div id="tooltip" class="tooltip"></div>
-    <script src="script.js"></script> <!-- Ensure this line is present -->
+    <div id="summary"></div>
+    <script src="script.js"></script>
 </body>
 </html>
