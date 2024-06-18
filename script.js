@@ -6,6 +6,7 @@ function updateChart(data) {
     const maxDepth = +document.getElementById('depth-filter').value;
 
     const filteredData = data.filter(d => {
+        console.log(`Magnitude: ${d.mag}, Depth: ${d.depth}`); // Debugging
         const isValidMagnitude = d.mag >= minMagnitude && d.mag <= maxMagnitude;
         const isValidDepth = d.depth <= maxDepth;
         return isValidMagnitude && isValidDepth;
@@ -61,6 +62,7 @@ function initializeChart() {
             d.Date = new Date(d.Date);
             d.mag = +d.mag;
             d.depth = +d.depth;
+            console.log(`Parsed Date: ${d.Date}, Magnitude: ${d.mag}, Depth: ${d.depth}`); // Debugging
         });
 
         currentData = data;
@@ -87,13 +89,6 @@ function initializeChart() {
 
         svg.select(".y-axis")
             .call(d3.axisLeft(yScale));
-
-        // Plot a single circle for debugging
-        svg.append("circle")
-            .attr("cx", xScale(data[0].Date))
-            .attr("cy", yScale(data[0].mag))
-            .attr("r", radiusScale(data[0].mag))
-            .attr("class", "bubble");
 
         updateChart(data);
     }).catch(error => {
