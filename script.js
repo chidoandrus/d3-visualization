@@ -6,14 +6,12 @@ function updateChart(data) {
     const maxDepth = +document.getElementById('depth-filter').value;
 
     const filteredData = data.filter(d => {
-        console.log(`Magnitude: ${d.mag}, Depth: ${d.depth}`); // Debugging
         const isValidMagnitude = d.mag >= minMagnitude && d.mag <= maxMagnitude;
         const isValidDepth = d.depth <= maxDepth;
         return isValidMagnitude && isValidDepth;
     });
 
     console.log("Filtered Data Length:", filteredData.length); // Debugging
-    console.log("Filtered Data Sample:", filteredData.slice(0, 5)); // Debugging
 
     if (filteredData.length === 0) {
         console.log("No data matches the filter criteria."); // Debugging
@@ -62,7 +60,6 @@ function initializeChart() {
             d.Date = new Date(d.Date);
             d.mag = +d.mag;
             d.depth = +d.depth;
-            console.log(`Parsed Date: ${d.Date}, Magnitude: ${d.mag}, Depth: ${d.depth}`); // Debugging
         });
 
         currentData = data;
