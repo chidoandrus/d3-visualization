@@ -97,4 +97,60 @@ function initializeChart() {
 
             currentData = data;
             console.log("Loaded Data Length:", data.length); // Debugging
-            console.log("Loaded Data Sample:", data.slic
+            console.log("Loaded Data Sample:", data.slice(0, 5)); // Debugging
+
+            if (data.length === 0) {
+                console.log("No data loaded from the CSV file."); // Debugging
+                return;
+            }
+
+            updateChart(data);
+        }).catch(error => {
+            console.error("Error loading data:", error);
+        });
+    }).catch(error => {
+        console.error("Error loading world map data:", error);
+    });
+}
+
+function zoomToLocation(lat, lon) {
+    console.log(`Zoom to location: Latitude: ${lat}, Longitude: ${lon}`); // Debugging
+    const [x, y] = projection([lon, lat]);
+    console.log(`Projected coordinates: x: ${x}, y: ${y}`); // Debugging
+
+    const svg = d3.select("#chart").select("svg");
+    svg.transition().duration(750).call(
+        d3.zoom().transform,
+        d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
+    );
+}
+
+function addAnnotation(lat, lon, text) {
+    console.log(`Add annotation at: Latitude: ${lat}, Longitude: ${lon}, Text: ${text}`); // Debugging
+    const [x, y] = projection([lon, lat]);
+    console.log(`Projected coordinates for annotation: x: ${x}, y: ${y}`); // Debugging
+    d3.select("svg").append("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "middle")
+        .attr("class", "annotation")
+        .text(text)
+        .style("fill", "red")
+        .style("font-size", "12px")
+        .style("font-weight", "bold");
+}
+
+document.getElementById('magnitude-filter').addEventListener('input', function() {
+    document.getElementById('magnitude-value').innerText = this.value;
+    updateChart(currentData);
+});
+
+document.getElementById('depth-filter').addEventListener('input', function() {
+    document.getElementById('depth-value').innerText = this.value;
+    updateChart(currentData);
+});
+
+document.getElementById('search-btn').addEventListener('click', function() {
+    const lat = +document.getElementById('latitude').value;
+    const lon = +document.getElementBy
