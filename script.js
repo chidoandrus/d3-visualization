@@ -114,7 +114,9 @@ function initializeChart() {
 }
 
 function zoomToLocation(lat, lon) {
+    console.log(`Zoom to location: Latitude: ${lat}, Longitude: ${lon}`); // Debugging
     const [x, y] = projection([lon, lat]);
+    console.log(`Projected coordinates: x: ${x}, y: ${y}`); // Debugging
     d3.select("svg").transition().duration(750).call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
@@ -122,7 +124,9 @@ function zoomToLocation(lat, lon) {
 }
 
 function addAnnotation(lat, lon, text) {
+    console.log(`Add annotation at: Latitude: ${lat}, Longitude: ${lon}, Text: ${text}`); // Debugging
     const [x, y] = projection([lon, lat]);
+    console.log(`Projected coordinates for annotation: x: ${x}, y: ${y}`); // Debugging
     d3.select("svg").append("text")
         .attr("x", x)
         .attr("y", y)
