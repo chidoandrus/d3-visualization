@@ -30,9 +30,11 @@ function updateChart(data) {
         .attr("cx", d => xScale(d.Date))
         .attr("cy", d => yScale(d.mag))
         .attr("r", d => radiusScale(d.mag))
-        .attr("class", "bubble");
-
-    circles.attr("cx", d => xScale(d.Date))
+        .attr("class", "bubble")
+        .merge(circles)
+        .transition()
+        .duration(750)
+        .attr("cx", d => xScale(d.Date))
         .attr("cy", d => yScale(d.mag))
         .attr("r", d => radiusScale(d.mag));
 
@@ -60,6 +62,7 @@ function initializeChart() {
             d.Date = new Date(d.Date);
             d.mag = +d.mag;
             d.depth = +d.depth;
+            d.id = d.id || `${d.Date.getTime()}-${d.latitude}-${d.longitude}`;
         });
 
         currentData = data;
