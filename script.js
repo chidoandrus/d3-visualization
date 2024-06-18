@@ -1,53 +1,41 @@
 let xScale, yScale, radiusScale, currentData;
 
-// Function to update the chart
 function updateChart(data) {
-    try {
-        const minMagnitude = +document.getElementById('magnitude-filter').value;
-        const maxMagnitude = 10;
-        const maxDepth = +document.getElementById('depth-filter').value;
+    const minMagnitude = +document.getElementById('magnitude-filter').value;
+    const maxMagnitude = 10;
+    const maxDepth = +document.getElementById('depth-filter').value;
 
-        const filteredData = data.filter(d => d.Magnitude >= minMagnitude && d.Magnitude <= maxMagnitude && d.Depth <= maxDepth);
+    const filteredData = data.filter(d => d.Magnitude >= minMagnitude && d.Magnitude <= maxMagnitude && d.Depth <= maxDepth);
 
-        // Debugging: Log the filtered data
-        console.log("Filtered Data:", filteredData);
+    console.log("Filtered Data:", filteredData); // Debugging
 
-        const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
-        const summary = d3.select("#summary");
+    const meanMagnitude = d3.mean(filteredData, d => d.Magnitude);
+    const summary = d3.select("#summary");
 
-        if (!meanMagnitude) {
-            summary.text("No data available for the selected filters.");
-            return;
-        }
-
-        summary.text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
-
-        const chart = d3.select("#chart").select("svg");
-        const circles = chart.selectAll("circle").data(filteredData);
-
-        circles.enter()
-            .append("circle")
-            .merge(circles)
-            .attr("cx", d => xScale(d.Date))
-            .attr("cy", d => yScale(d.Magnitude))
-            .attr("r", d => {
-                const radius = radiusScale(d.Magnitude);
-                return isNaN(radius) ? 0 : radius;
-            })
-            .attr("class", "bubble");
-
-        circles.exit().remove();
-
-        // Debugging: Log the circle attributes
-        circles.each(function(d) {
-            console.log("Circle:", this, d);
-        });
-    } catch (error) {
-        console.error("Error updating chart:", error);
+    if (!meanMagnitude) {
+        summary.text("No data available for the selected filters.");
+        return;
     }
+
+    summary.text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
+
+    const svg = d3.select("#chart").select("svg");
+    const circles = svg.selectAll("circle").data(filteredData, d => d.ID);
+
+    circles.enter()
+        .append("circle")
+        .attr("cx", d => xScale(d.Date))
+        .attr("cy", d => yScale(d.Magnitude))
+        .attr("r", d => radiusScale(d.Magnitude))
+        .attr("class", "bubble");
+
+    circles.attr("cx", d => xScale(d.Date))
+        .attr("cy", d => yScale(d.Magnitude))
+        .attr("r", d => radiusScale(d.Magnitude));
+
+    circles.exit().remove();
 }
 
-// Initializing the chart
 function initializeChart() {
     const svg = d3.select("#chart").append("svg")
         .attr("width", 960)
@@ -64,31 +52,35 @@ function initializeChart() {
     svg.append("g")
         .attr("class", "y-axis");
 
-    // Debugging: Log the scales
-    console.log("xScale:", xScale);
-    console.log("yScale:", yScale);
-    console.log("radiusScale:", radiusScale);
+    d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
+        data.forEach(d => {
+            d.Date = new Date(d.Date);
+            d.Magnitude = +d.Magnitude;
+            d.Depth = +d.Depth;
+        });
+
+        currentData = data;
+        console.log("Loaded Data:", data); // Debugging
+
+        const extentX = d3.extent(data, d => d.Date);
+        const extentY = d3.extent(data, d => d.Magnitude);
+
+        xScale.domain(extentX);
+        yScale.domain(extentY);
+        radiusScale.domain(extentY);
+
+        svg.select(".x-axis")
+            .call(d3.axisBottom(xScale));
+
+        svg.select(".y-axis")
+            .call(d3.axisLeft(yScale));
+
+        updateChart(data);
+    }).catch(error => {
+        console.error("Error loading data:", error);
+    });
 }
 
-// Load data and initialize the chart
-d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
-    data.forEach(d => {
-        d.Date = new Date(d.Date);
-        d.Magnitude = +d.Magnitude;
-        d.Depth = +d.Depth;
-    });
-
-    // Debugging: Log the loaded data
-    console.log("Loaded Data:", data);
-
-    currentData = data;
-    initializeChart();
-    updateChart(data);
-}).catch(error => {
-    console.error("Error loading data:", error);
-});
-
-// Set up event listeners for filters
 document.getElementById('magnitude-filter').addEventListener('input', function() {
     document.getElementById('magnitude-value').innerText = this.value;
     updateChart(currentData);
@@ -98,3 +90,5 @@ document.getElementById('depth-filter').addEventListener('input', function() {
     document.getElementById('depth-value').innerText = this.value;
     updateChart(currentData);
 });
+
+initializeChart();
