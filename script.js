@@ -50,11 +50,10 @@ function updateChart(data) {
             tooltip.style("display", "block")
                 .html(`Average Magnitude: ${d3.mean(d, p => p[2]).toFixed(2)}<br>Count: ${d.length}`)
                 .style("left", (event.pageX + 5) + "px")
-                .style("top", (event.pageY - 28) + "px")
-                .style("opacity", 1);
+                .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select("#tooltip").style("display", "none").style("opacity", 0);
+            d3.select("#tooltip").style("display", "none");
         });
 }
 
@@ -70,7 +69,7 @@ function initializeChart() {
     projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    hexbin = d3.hexbin().radius(2).extent([[0, 0], [width, height]]); // Adjusted hexbin radius to 2
+    hexbin = d3.hexbin().radius(10).extent([[0, 0], [width, height]]); // Adjusted hexbin radius to 10
 
     svg.append("g").attr("class", "countries");
 
