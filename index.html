@@ -1,55 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Earthquake Map Visualization</title>
-    <style>
-        #chart {
-            width: 960px;
-            height: 500px;
-        }
-        .annotation {
-            fill: red;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        #tooltip {
-            position: absolute;
-            text-align: center;
-            width: 120px;
-            height: auto;
-            padding: 10px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
-            pointer-events: none;
-        }
-    </style>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Earthquake Map Visualization</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://d3js.org/topojson.v3.min.js"></script>
 </head>
 <body>
-    <h1>Interactive Earthquake Map Visualization</h1>
-    <div>
-        Magnitude Filter: <input type="range" id="magnitude-filter" min="0" max="10" step="0.1" value="0">
-        <span id="magnitude-value">0</span>
-        <br>
-        6 Depth Filter: <input type="range" id="depth-filter" min="0" max="700" step="10" value="700">
-        <span id="depth-value">700</span>
-    </div>
-    <div>
-        Latitude: <input type="number" id="latitude" placeholder="Enter latitude">
-        Longitude: <input type="number" id="longitude" placeholder="Enter longitude">
-        <button id="search-btn">Search & Zoom</button>
-        <br>
-        Annotation: <input type="text" id="annotation-text" placeholder="Enter annotation text">
-        <button id="annotate-btn">Add Annotation</button>
-    </div>
-    <div id="chart"></div>
-    <div id="summary">Average Magnitude: 0.00</div>
-    <div id="tooltip" style="display: none;"></div>
-    <script src="script.js"></script>
+  <h1>Interactive Earthquake Map Visualization</h1>
+  <div>
+    Magnitude Filter: <input type="range" id="magFilter" min="0" max="10" step="0.1" value="0">
+    6 Depth Filter: <input type="range" id="depthFilter" min="0" max="700" step="10" value="700">
+  </div>
+  <div id="chart"></div>
+  <script src="script.js"></script>
 </body>
 </html>
