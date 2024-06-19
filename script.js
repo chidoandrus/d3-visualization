@@ -22,7 +22,7 @@ function updateChart(data) {
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
     const svg = d3.select("#chart").select("svg g");
-    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag, d])) ;
+    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag, d]));
 
     const hexagons = svg.selectAll(".hexagon").data(hexData);
 
