@@ -50,13 +50,13 @@ function updateChart(data) {
             const earthquakeData = d[0][3];
             tooltip.style("display", "block")
                 .html(`
-                    Id: ${earthquakeData.id}<br>
-                    Location: ${earthquakeData.place}<br>
-                    Type: ${earthquakeData.type}<br>
-                    Updated: ${earthquakeData.updated}<br>
-                    Latitude: ${earthquakeData.latitude}<br>
-                    Longitude: ${earthquakeData.longitude}<br>
-                    Magnitude: ${earthquakeData.mag}
+                    <strong>Id:</strong> ${earthquakeData.id}<br>
+                    <strong>Location:</strong> ${earthquakeData.place}<br>
+                    <strong>Type:</strong> ${earthquakeData.type}<br>
+                    <strong>Updated:</strong> ${earthquakeData.updated}<br>
+                    <strong>Latitude:</strong> ${earthquakeData.latitude}<br>
+                    <strong>Longitude:</strong> ${earthquakeData.longitude}<br>
+                    <strong>Magnitude:</strong> ${earthquakeData.mag}
                 `)
                 .style("left", (event.pageX + 5) + "px")
                 .style("top", (event.pageY - 28) + "px");
