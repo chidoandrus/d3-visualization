@@ -24,7 +24,7 @@ d3.json("https://d3js.org/world-50m.v1.json").then(world => {
     });
 
     const hexbin = d3.hexbin()
-      .radius(5)
+      .radius(10)
       .extent([[0, 0], [width, height]]);
 
     const hexbinData = hexbin(data.map(d => projection([d.longitude, d.latitude])));
