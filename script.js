@@ -22,7 +22,7 @@ function updateChart(data) {
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
     const svg = d3.select("#chart").select("svg g");
-    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag]));
+    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag, d])) ;
 
     const hexagons = svg.selectAll(".hexagon").data(hexData);
 
@@ -47,8 +47,17 @@ function updateChart(data) {
     svg.selectAll(".hexagon")
         .on("mouseover", function(event, d) {
             const tooltip = d3.select("#tooltip");
+            const earthquakeData = d[0][3];
             tooltip.style("display", "block")
-                .html(`Average Magnitude: ${d3.mean(d, p => p[2]).toFixed(2)}<br>Count: ${d.length}`)
+                .html(`
+                    Id: ${earthquakeData.id}<br>
+                    Location: ${earthquakeData.place}<br>
+                    Type: ${earthquakeData.type}<br>
+                    Updated: ${earthquakeData.updated}<br>
+                    Latitude: ${earthquakeData.latitude}<br>
+                    Longitude: ${earthquakeData.longitude}<br>
+                    Magnitude: ${earthquakeData.mag}
+                `)
                 .style("left", (event.pageX + 5) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
