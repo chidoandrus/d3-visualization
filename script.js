@@ -130,7 +130,7 @@ function addAnnotation(lat, lon, text) {
     console.log(`Add annotation at: Latitude: ${lat}, Longitude: ${lon}, Text: ${text}`);
     const [x, y] = projection([lon, lat]);
     console.log(`Projected coordinates for annotation: x: ${x}, y: ${y}`);
-    d3.select("svg").append("text")
+    d3.select("svg g").append("text")
         .attr("x", x)
         .attr("y", y)
         .attr("dy", ".35em")
