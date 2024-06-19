@@ -1,10 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#chart {
+    margin-top: 20px;
+}
+
 .tooltip {
-  position: absolute;
-  background-color: white;
-  border: 1px solid #ccc;
-  padding: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
+    position: absolute;
+    text-align: center;
+    width: 120px;
+    height: 48px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
 }
