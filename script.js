@@ -69,7 +69,7 @@ function initializeChart() {
     projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    hexbin = d3.hexbin().radius(20).extent([[0, 0], [width, height]]); // Adjusted hexbin radius
+    hexbin = d3.hexbin().radius(8).extent([[0, 0], [width, height]]); // Adjusted hexbin radius
 
     svg.append("g").attr("class", "countries");
 
