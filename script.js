@@ -1,159 +1,114 @@
 const width = 960;
 const height = 500;
-let projection, path, colorScale, hexbin, currentData;
+const svg = d3.select("#chart")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
 
-function updateChart(data) {
-    const minMagnitude = +document.getElementById('magnitude-filter').value;
-    const maxMagnitude = 10;
-    const maxDepth = +document.getElementById('depth-filter').value;
+const projection = d3.geoMercator().scale(150).translate([width / 2, height / 2]);
+const path = d3.geoPath().projection(projection);
 
-    const filteredData = data.filter(d => {
-        const isValidMagnitude = d.mag >= minMagnitude && d.mag <= maxMagnitude;
-        const isValidDepth = d.depth <= maxDepth;
-        return isValidMagnitude && isValidDepth;
+const g = svg.append("g");
+
+d3.json("https://d3js.org/world-50m.v1.json").then(world => {
+  g.append("path")
+    .datum(topojson.feature(world, world.objects.countries))
+    .attr("d", path)
+    .attr("class", "country");
+
+  d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
+    data.forEach(d => {
+      d.latitude = +d.latitude;
+      d.longitude = +d.longitude;
+      d.magnitude = +d.magnitude;
     });
 
-    if (filteredData.length === 0) {
-        d3.select("#summary").text("No data available for the selected filters.");
-        return;
+    const hexbin = d3.hexbin()
+      .radius(5)
+      .extent([[0, 0], [width, height]]);
+
+    const hexbinData = hexbin(data.map(d => projection([d.longitude, d.latitude])));
+
+    const color = d3.scaleSequential(d3.extent(data, d => d.magnitude), d3.interpolateYlGnBu);
+
+    g.append("g")
+      .attr("class", "hexagon")
+      .selectAll("path")
+      .data(hexbinData)
+      .enter()
+      .append("path")
+      .attr("d", hexbin.hexagon())
+      .attr("transform", d => `translate(${d.x},${d.y})`)
+      .attr("fill", d => color(d3.mean(d, d => d.magnitude)))
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip");
+
+    function handleMouseOver(event, d) {
+      tooltip.transition().duration(200).style("opacity", .9);
+      tooltip.html(`Average Magnitude: ${d3.mean(d, d => d.magnitude).toFixed(2)}<br>Count: ${d.length}`)
+        .style("left", (event.pageX + 5) + "px")
+        .style("top", (event.pageY - 28) + "px");
     }
 
-    const meanMagnitude = d3.mean(filteredData, d => d.mag);
-    d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
+    function handleMouseOut(event, d) {
+      tooltip.transition().duration(500).style("opacity", 0);
+    }
 
-    const svg = d3.select("#chart").select("svg");
-    const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag]));
+    d3.select("#magFilter").on("input", updateChart);
+    d3.select("#depthFilter").on("input", updateChart);
 
-    const hexagons = svg.selectAll(".hexagon").data(hexData);
+    function updateChart() {
+      const magFilter = +d3.select("#magFilter").property("value");
+      const depthFilter = +d3.select("#depthFilter").property("value");
 
-    hexagons.enter()
-        .append("path")
-        .attr("class", "hexagon")
+      const filteredData = hexbin(data.filter(d => d.magnitude >= magFilter && d.depth <= depthFilter)
+        .map(d => projection([d.longitude, d.latitude])));
+
+      g.selectAll(".hexagon path")
+        .data(filteredData)
+        .join("path")
         .attr("d", hexbin.hexagon())
         .attr("transform", d => `translate(${d.x},${d.y})`)
-        .style("fill", d => colorScale(d3.mean(d, p => p[2])))
-        .style("opacity", 0.6)
-        .merge(hexagons)
-        .transition()
-        .duration(750)
-        .attr("d", hexbin.hexagon())
-        .attr("transform", d => `translate(${d.x},${d.y})`)
-        .style("fill", d => colorScale(d3.mean(d, p => p[2])))
-        .style("opacity", 0.6);
+        .attr("fill", d => color(d3.mean(d, d => d.magnitude)))
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .on("mouseover", handleMouseOver)
+        .on("mouseout", handleMouseOut);
+    }
 
-    hexagons.exit().remove();
+    d3.select("#zoomBtn").on("click", () => {
+      const latitude = +d3.select("#latitude").property("value");
+      const longitude = +d3.select("#longitude").property("value");
+      const annotation = d3.select("#annotation").property("value");
 
-    // Tooltip functionality
-    svg.selectAll(".hexagon")
-        .on("mouseover", function(event, d) {
-            const tooltip = d3.select("#tooltip");
-            tooltip.style("display", "block")
-                .html(`Average Magnitude: ${d3.mean(d, p => p[2]).toFixed(2)}<br>Count: ${d.length}`)
-                .style("left", (event.pageX + 5) + "px")
-                .style("top", (event.pageY - 28) + "px");
-        })
-        .on("mouseout", function() {
-            d3.select("#tooltip").style("display", "none");
-        });
-}
+      if (latitude && longitude) {
+        svg.transition()
+          .duration(750)
+          .call(zoom.transform, d3.zoomIdentity
+            .translate(width / 2, height / 2)
+            .scale(4)
+            .translate(-projection([longitude, latitude])[0], -projection([latitude, longitude])[1]));
 
-function initializeChart() {
-    const svg = d3.select("#chart").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .call(d3.zoom().on("zoom", function (event) { // Enable zooming and panning
-            svg.attr("transform", event.transform)
-        }))
-        .append("g");
-
-    projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
-    path = d3.geoPath().projection(projection);
-    colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    hexbin = d3.hexbin().radius(5).extent([[0, 0], [width, height]]); // Adjusted hexbin radius to 5
-
-    svg.append("g").attr("class", "countries");
-
-    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(worldData => {
-        svg.selectAll(".country")
-            .data(worldData.features)
-            .enter().append("path")
-            .attr("class", "country")
-            .attr("d", path)
-            .style("fill", "#ccc")
-            .style("stroke", "#333");
-
-        d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
-            data.forEach(d => {
-                d.Date = new Date(d.Date);
-                d.mag = +d.mag;
-                d.depth = +d.depth;
-                d.latitude = +d.latitude;
-                d.longitude = +d.longitude;
-                d.id = `${d.Date.getTime()}-${d.latitude}-${d.longitude}`;
-            });
-
-            currentData = data;
-            console.log("Loaded Data Length:", data.length);
-            console.log("Loaded Data Sample:", data.slice(0, 5));
-
-            updateChart(data);
-        }).catch(error => {
-            console.error("Error loading data:", error);
-        });
-    }).catch(error => {
-        console.error("Error loading world map data:", error);
+        g.append("text")
+          .attr("x", projection([longitude, latitude])[0])
+          .attr("y", projection([latitude, longitude])[1])
+          .attr("dy", ".35em")
+          .attr("fill", "red")
+          .text(annotation);
+      }
     });
-}
 
-function zoomToLocation(lat, lon) {
-    console.log(`Zoom to location: Latitude: ${lat}, Longitude: ${lon}`);
-    const [x, y] = projection([lon, lat]);
-    console.log(`Projected coordinates: x: ${x}, y: ${y}`);
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      });
 
-    const svg = d3.select("#chart").select("svg");
-    svg.transition().duration(750).call(
-        d3.zoom().transform,
-        d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
-    );
-}
-
-function addAnnotation(lat, lon, text) {
-    console.log(`Add annotation at: Latitude: ${lat}, Longitude: ${lon}, Text: ${text}`);
-    const [x, y] = projection([lon, lat]);
-    console.log(`Projected coordinates for annotation: x: ${x}, y: ${y}`);
-    d3.select("svg").append("text")
-        .attr("x", x)
-        .attr("y", y)
-        .attr("dy", ".35em")
-        .attr("text-anchor", "middle")
-        .attr("class", "annotation")
-        .text(text)
-        .style("fill", "red")
-        .style("font-size", "12px")
-        .style("font-weight", "bold");
-}
-
-document.getElementById('magnitude-filter').addEventListener('input', function() {
-    document.getElementById('magnitude-value').innerText = this.value;
-    updateChart(currentData);
+    svg.call(zoom);
+  });
 });
-
-document.getElementById('depth-filter').addEventListener('input', function() {
-    document.getElementById('depth-value').innerText = this.value;
-    updateChart(currentData);
-});
-
-document.getElementById('search-btn').addEventListener('click', function() {
-    const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    zoomToLocation(lat, lon);
-});
-
-document.getElementById('annotate-btn').addEventListener('click', function() {
-    const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    const text = document.getElementById('annotation-text').value;
-    addAnnotation(lat, lon, text);
-});
-
-initializeChart();
