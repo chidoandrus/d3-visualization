@@ -80,7 +80,7 @@ function initializeChart() {
             .enter().append("path")
             .attr("class", "country")
             .attr("d", path)
-            .style("fill", "#ccc")
+            .style("fill", "#e0e0e0")
             .style("stroke", "#333");
 
         d3.csv("Mag6PlusEarthquakes_1900-2013.csv").then(data => {
