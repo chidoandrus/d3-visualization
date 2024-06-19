@@ -1,3 +1,25 @@
+const width = 960;
+const height = 500;
+let projection, path, colorScale, hexbin, currentData;
+
+function updateChart(data) {
+    const minMagnitude = +document.getElementById('magnitude-filter').value;
+    const maxMagnitude = 10;
+    const maxDepth = +document.getElementById('depth-filter').value;
+
+    const filteredData = data.filter(d => {
+        const isValidMagnitude = d.mag >= minMagnitude && d.mag <= maxMagnitude;
+        const isValidDepth = d.depth <= maxDepth;
+        return isValidMagnitude && isValidDepth;
+    });
+
+    if (filteredData.length === 0) {
+        d3.select("#summary").text("No data available for the selected filters.");
+        return;
+    }
+
+    const meanMagnitude = d3.mean
+
 (filteredData, d => d.mag);
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
