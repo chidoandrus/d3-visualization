@@ -18,12 +18,10 @@ function updateChart(data) {
         return;
     }
 
-    const meanMagnitude = d3.mean
-
-(filteredData, d => d.mag);
+    const meanMagnitude = d3.mean(filteredData, d => d.mag);
     d3.select("#summary").text(`Average Magnitude: ${meanMagnitude.toFixed(2)}`);
 
-    const svg = d3.select("#chart svg").select("g");
+    const svg = d3.select("#chart").select("svg g");
     const hexData = hexbin(filteredData.map(d => [projection([d.longitude, d.latitude])[0], projection([d.longitude, d.latitude])[1], d.mag, d]));
 
     const hexagons = svg.selectAll(".hexagon").data(hexData);
@@ -69,17 +67,18 @@ function updateChart(data) {
 }
 
 function initializeChart() {
-    const svg = d3.select("#chart svg")
-        .append("g")
-        .call(d3.zoom().on("zoom", function (event) {
-            svg.attr("transform", event.transform);
+    const svg = d3.select("#chart").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .call(d3.zoom().on("zoom", function (event) { // Enable zooming and panning
+            svg.attr("transform", event.transform)
         }))
         .append("g");
 
     projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
     path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
-    hexbin = d3.hexbin().radius(5).extent([[0, 0], [width, height]]);
+    hexbin = d3.hexbin().radius(5).extent([[0, 0], [width, height]]); // Adjusted hexbin radius to 5
 
     svg.append("g").attr("class", "countries");
 
@@ -116,8 +115,11 @@ function initializeChart() {
 }
 
 function zoomToLocation(lat, lon) {
+    console.log(`Zoom to location: Latitude: ${lat}, Longitude: ${lon}`);
     const [x, y] = projection([lon, lat]);
-    const svg = d3.select("#chart svg");
+    console.log(`Projected coordinates: x: ${x}, y: ${y}`);
+
+    const svg = d3.select("#chart").select("svg");
     svg.transition().duration(750).call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(width / 2 - x, height / 2 - y).scale(4)
@@ -125,8 +127,10 @@ function zoomToLocation(lat, lon) {
 }
 
 function addAnnotation(lat, lon, text) {
+    console.log(`Add annotation at: Latitude: ${lat}, Longitude: ${lon}, Text: ${text}`);
     const [x, y] = projection([lon, lat]);
-    d3.select("#chart svg g").append("text")
+    console.log(`Projected coordinates for annotation: x: ${x}, y: ${y}`);
+    d3.select("svg g").append("text")
         .attr("x", x)
         .attr("y", y)
         .attr("dy", ".35em")
@@ -150,15 +154,4 @@ document.getElementById('depth-filter').addEventListener('input', function() {
 
 document.getElementById('search-btn').addEventListener('click', function() {
     const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    zoomToLocation(lat, lon);
-});
-
-document.getElementById('annotate-btn').addEventListener('click', function() {
-    const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    const text = document.getElementById('annotation-text').value;
-    addAnnotation(lat, lon, text);
-});
-
-initializeChart();
+    const lon = +document.getElementBy
