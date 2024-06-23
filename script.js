@@ -1,5 +1,5 @@
-const width = 960;
-const height = 500;
+let width = 960;
+let height = 500;
 let projection, path, colorScale, hexbin, currentData;
 
 function updateChart(data) {
@@ -121,7 +121,9 @@ function initializeChart() {
     window.addEventListener('resize', () => {
         const newWidth = document.getElementById('chart').offsetWidth;
         const newHeight = document.getElementById('chart').offsetHeight;
-        svg.attr("width", newWidth).attr("height", newHeight);
+        width = newWidth;
+        height = newHeight;
+        svg.attr("width", width).attr("height", height);
         updateProjection();
         updateChart(currentData);
     });
