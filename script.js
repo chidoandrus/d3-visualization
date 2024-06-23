@@ -1,5 +1,5 @@
-let width = 960;
-let height = 500;
+const width = 960;
+const height = 500;
 let projection, path, colorScale, hexbin, currentData;
 
 function updateChart(data) {
@@ -75,13 +75,8 @@ function initializeChart() {
         }))
         .append("g");
 
-    function updateProjection() {
-        projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
-        path = d3.geoPath().projection(projection);
-    }
-
-    updateProjection();
-
+    projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
+    path = d3.geoPath().projection(projection);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
     hexbin = d3.hexbin().radius(5).extent([[0, 0], [width, height]]);
 
@@ -116,16 +111,6 @@ function initializeChart() {
         });
     }).catch(error => {
         console.error("Error loading world map data:", error);
-    });
-
-    window.addEventListener('resize', () => {
-        const newWidth = document.getElementById('chart').offsetWidth;
-        const newHeight = document.getElementById('chart').offsetHeight;
-        width = newWidth;
-        height = newHeight;
-        svg.attr("width", width).attr("height", height);
-        updateProjection();
-        updateChart(currentData);
     });
 }
 
