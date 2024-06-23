@@ -75,8 +75,13 @@ function initializeChart() {
         }))
         .append("g");
 
-    projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
-    path = d3.geoPath().projection(projection);
+    function updateProjection() {
+        projection = d3.geoMercator().scale(150).translate([width / 2, height / 1.5]);
+        path = d3.geoPath().projection(projection);
+    }
+
+    updateProjection();
+
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, 10]);
     hexbin = d3.hexbin().radius(5).extent([[0, 0], [width, height]]);
 
@@ -112,6 +117,14 @@ function initializeChart() {
     }).catch(error => {
         console.error("Error loading world map data:", error);
     });
+
+    window.addEventListener('resize', () => {
+        const newWidth = document.getElementById('chart').offsetWidth;
+        const newHeight = document.getElementById('chart').offsetHeight;
+        svg.attr("width", newWidth).attr("height", newHeight);
+        updateProjection();
+        updateChart(currentData);
+    });
 }
 
 function zoomToLocation(lat, lon) {
@@ -143,21 +156,4 @@ document.getElementById('magnitude-filter').addEventListener('input', function()
 });
 
 document.getElementById('depth-filter').addEventListener('input', function() {
-    document.getElementById('depth-value').innerText = this.value;
-    updateChart(currentData);
-});
-
-document.getElementById('search-btn').addEventListener('click', function() {
-    const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    zoomToLocation(lat, lon);
-});
-
-document.getElementById('annotate-btn').addEventListener('click', function() {
-    const lat = +document.getElementById('latitude').value;
-    const lon = +document.getElementById('longitude').value;
-    const text = document.getElementById('annotation-text').value;
-    addAnnotation(lat, lon, text);
-});
-
-initializeChart();
+    document.getElementById('depth-value').innerText = this.value
